@@ -8,40 +8,40 @@ import {
 } from "./utils.js";
 
 /**
- * Create a new bill for the user.
+ * Create a new transfer for the user.
  */
-const createNewBill = async () => {
-  await callMyServer("/server/bills/create", true);
-  await billsRefresh();
+const createNewTransfer = async () => {
+  await callMyServer("/server/transfers/create", true);
+  await transfersRefresh();
 };
 
 /**
- * Grab the list of bills from the server and display them on the page
+ * Grab the list of transfers from the server and display them on the page
  */
-export const billsRefresh = async () => {
-  const billsJSON = await callMyServer("/server/bills/list");
+export const transfersRefresh = async () => {
+  const transfersJSON = await callMyServer("/server/transfers/list");
   // Let's add this to our table!
   const accountTable = document.querySelector("#reportTable");
-  if (billsJSON == null || billsJSON.length === 0) {
-    accountTable.innerHTML = `<tr><td colspan="4">No bills yet! Click the button below to create one!</td></tr>`;
+  if (transfersJSON == null || transfersJSON.length === 0) {
+    accountTable.innerHTML = `<tr><td colspan="4">No transfers yet! Click the button below to create one!</td></tr>`;
     return;
   }
 
-  accountTable.innerHTML = billsJSON
-    .map((bill) => {
-      const billActionLink = `<a href="transfer-details.html?billId=${bill.id}">${bill.status === "unpaid" ? "Pay" : "View"
+  accountTable.innerHTML = transfersJSON
+    .map((transfer) => {
+      const transferActionLink = `<a href="transfer-details.html?transferId=${transfer.id}">${transfer.status === "unpaid" ? "Pay" : "View"
         }</a>`;
-      return `<tr><td>${bill.description}</td><td>${prettyDate(
-        bill.created_date
+      return `<tr><td>${transfer.description}</td><td>${prettyDate(
+        transfer.created_date
       )}</td><td class="text-end">${currencyAmount(
-        (bill.original_amount_cents -
-          bill.paid_total_cents -
-          bill.pending_total_cents) /
+        (transfer.original_amount_cents -
+          transfer.paid_total_cents -
+          transfer.pending_total_cents) /
         100,
         "USD"
       )}</td><td>${snakeToEnglish(
-        bill.status
-      )}</td><td>${billActionLink}</td></tr>`;
+        transfer.status
+      )}</td><td>${transferActionLink}</td></tr>`;
     })
     .join("\n");
 };
@@ -54,14 +54,14 @@ const signedOutCallBack = () => {
 };
 
 /**
- * If we're signed in, update the welcome message and refresh the table of bills
+ * If we're signed in, update the welcome message and refresh the table of transfers
  */
 const signedInCallBack = (userInfo) => {
   console.log(userInfo);
   document.querySelector(
     "#welcomeMessage"
-  ).textContent = `Hi there, ${userInfo.firstName} ${userInfo.lastName}! Feel free to view or pay any of your bills!`;
-  billsRefresh();
+  ).textContent = `Hi there, ${userInfo.firstName} ${userInfo.lastName}! Feel free to view or pay any of your transfers!`;
+  transfersRefresh();
 };
 
 /**
@@ -77,7 +77,7 @@ const createTransfer = async function () {
 
   try {
 
-    const result = await callMyServer("/server/bills/create", true, {
+    const result = await callMyServer("/server/transfers/create", true, {
       amount: amount,
       description: "Transfer to Co2Trust"
     });
@@ -87,8 +87,8 @@ const createTransfer = async function () {
     // Clear the input
     document.querySelector("#transferAmount").value = "";
 
-    // Refresh the bills list using existing function
-    await billsRefresh();
+    // Refresh the transfers list using existing function
+    await transfersRefresh();
   } catch (error) {
     console.error("Failed to create transfer:", error);
     alert("Failed to create transfer. Please try again.");
@@ -100,7 +100,7 @@ const createTransfer = async function () {
  */
 const selectorsAndFunctions = {
   "#signOut": () => signOut(signedOutCallBack),
-  "#newBill": createNewBill,
+  "#newTransfer": createNewTransfer,
   "#createTransfer": createTransfer
 };
 

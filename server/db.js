@@ -22,8 +22,8 @@ const createItemsTableSQL =
 const createAccountsTableSQL =
   "CREATE TABLE accounts (id TEXT PRIMARY KEY, item_id TEXT NOT NULL, " +
   "name TEXT, cached_balance FLOAT, FOREIGN KEY(item_id) REFERENCES items(id))";
-const createBillsTableSQL =
-  "CREATE TABLE bills (id TEXT PRIMARY KEY,  user_id TEXT NOT NULL, " +
+const createTransfersTableSQL =
+  "CREATE TABLE transfers (id TEXT PRIMARY KEY,  user_id TEXT NOT NULL, " +
   "created_date TEXT, description TEXT, original_amount_cents INT, paid_total_cents INT DEFAULT 0, " +
   "pending_total_cents INT DEFAULT 0, status TEXT, " +
   "FOREIGN KEY(user_id) REFERENCES users(id))";
@@ -33,7 +33,7 @@ const createPaymentsTableSQL = `CREATE TABLE payments (
   plaid_id TEXT,
   plaid_auth_id TEXT,
   user_id TEXT NOT NULL,
-  bill_id TEXT NOT NULL,
+  transfer_id TEXT NOT NULL,
   account_id TEXT,
   amount_cents INT,
   authorized_status TEXT,
@@ -42,7 +42,7 @@ const createPaymentsTableSQL = `CREATE TABLE payments (
   status TEXT,
   created_date TEXT,
   FOREIGN KEY(user_id) REFERENCES users(id),
-  FOREIGN KEY(bill_id) REFERENCES bills(id),
+  FOREIGN KEY(transfer_id) REFERENCES transfers(id),
   FOREIGN KEY(account_id) REFERENCES accounts(id)
 )`;
 
@@ -63,7 +63,7 @@ dbWrapper
         await db.run(createUsersTableSQL);
         await db.run(createItemsTableSQL);
         await db.run(createAccountsTableSQL);
-        await db.run(createBillsTableSQL);
+        await db.run(createTransfersTableSQL);
         await db.run(createPaymentsTableSQL);
         await db.run(createAppTableSQL);
 
@@ -89,7 +89,7 @@ dbWrapper
           users: createUsersTableSQL,
           items: createItemsTableSQL,
           accounts: createAccountsTableSQL,
-          bills: createBillsTableSQL,
+          transfers: createTransfersTableSQL,
           payments: createPaymentsTableSQL,
           appdata: createAppTableSQL,
         };
@@ -289,19 +289,19 @@ function generateTransferId() {
 }
 
 /***********************************************
- * Functions related to Bills
+ * Functions related to Transfers
  **********************************************/
-const createNewBill = async function (userId, amount, description) {
+const createNewTransfer = async function (userId, amount, description) {
   try {
-    const billId = generateTransferId();
+    const transferId = generateTransferId();
 
     // Convert amount to cents as per original schema
     const amountInCents = Math.round(amount * 100);
 
     const result = await db.run(
-      `INSERT INTO bills(id, user_id, created_date, description, original_amount_cents, paid_total_cents, pending_total_cents, status) 
+      `INSERT INTO transfers(id, user_id, created_date, description, original_amount_cents, paid_total_cents, pending_total_cents, status) 
        VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
-      billId,
+      transferId,
       userId,
       new Date().toISOString(),
       description,
@@ -311,46 +311,46 @@ const createNewBill = async function (userId, amount, description) {
       'Unpaid'
     );
 
-    console.log(`Bill created with ID: ${billId}`);
+    console.log(`Transfer created with ID: ${transferId}`);
     console.log(`Result: ${JSON.stringify(result)}`);
 
     return {
-      id: billId,
+      id: transferId,
       amount: amount,
       description,
       status: 'Unpaid'
     };
   } catch (error) {
-    console.error(`Error creating bill ${error}`);
+    console.error(`Error creating transfer ${error}`);
     throw error;
   }
 };
 
 
 
-const getBillsForUser = async function (userId) {
+const getTransfersForUser = async function (userId) {
   try {
     const result = await db.all(
-      `SELECT * from bills WHERE user_id = ?`,
+      `SELECT * from transfers WHERE user_id = ?`,
       userId
     );
     return result;
   } catch (error) {
-    console.error(`Error getting bills for user ${error}`);
+    console.error(`Error getting transfers for user ${error}`);
     throw error;
   }
 };
 
-const getBillDetailsForUser = async function (userId, billId) {
+const getTransferDetailsForUser = async function (userId, transferId) {
   try {
     const result = await db.get(
-      `SELECT * from bills WHERE user_id = ? AND id = ?`,
+      `SELECT * from transfers WHERE user_id = ? AND id = ?`,
       userId,
-      billId
+      transferId
     );
     return result;
   } catch (error) {
-    console.error(`Error getting bill details for user ${error}`);
+    console.error(`Error getting transfer details for user ${error}`);
     throw error;
   }
 };
@@ -361,8 +361,8 @@ const getBillDetailsForUser = async function (userId, billId) {
 
 const createPaymentForUser = async function (
   userId,
-  billId,
   transferId,
+  plaidIntentId,
   accountId,
   amount_cents
 ) {
@@ -371,11 +371,11 @@ const createPaymentForUser = async function (
     // We won't store the account ID yet, becuase we might not know it.
     const paymentId = uuidv4();
     const _ = await db.run(
-      `INSERT INTO payments(id, user_id, bill_id, plaid_intent_id, account_id, amount_cents, status, created_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO payments(id, user_id, transfer_id, plaid_intent_id, account_id, amount_cents, status, created_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
       paymentId,
       userId,
-      billId,
       transferId,
+      plaidIntentId,
       accountId,
       amount_cents,
       "waiting_for_auth",
@@ -509,16 +509,16 @@ const getPaymentByPlaidId = async function (plaidId) {
   }
 };
 
-const getPaymentsForUserBill = async function (userId, billId) {
+const getPaymentsForUserTransfer = async function (userId, transferId) {
   try {
     const payments = await db.all(
-      `SELECT * FROM payments WHERE user_id = ? AND bill_id = ?`,
+      `SELECT * FROM payments WHERE user_id = ? AND transfer_id = ?`,
       userId,
-      billId
+      transferId
     );
     return payments;
   } catch (error) {
-    console.error(`Error getting payments for user and bill ${error}`);
+    console.error(`Error getting payments for user and transfer ${error}`);
     throw error;
   }
 };
@@ -526,11 +526,11 @@ const getPaymentsForUserBill = async function (userId, billId) {
 const updatePaymentStatus = async (
   paymentId,
   status,
-  billId,
+  transferId,
   optionalError
 ) => {
   try {
-    const { recalculateBill } = require("./recalculateBills");
+    const { recalculateTransfer } = require("./recalculateTransfers");
     await db.run("BEGIN TRANSACTION");
     const updatePaymentResult = await db.run(
       `UPDATE payments SET status=? WHERE id=?`,
@@ -548,8 +548,8 @@ const updatePaymentStatus = async (
       );
     }
 
-    await recalculateBill(billId);
-    // TODO: Recalculate the bill's status based on the payments
+    await recalculateTransfer(transferId);
+    // TODO: Recalculate the transfer's status based on the payments
     await db.run("COMMIT");
   } catch (error) {
     await db.run("ROLLBACK");
@@ -600,49 +600,49 @@ const setLastSyncNum = async function (syncNum) {
  * Meaning they shouldn't be called in response to a user action
  *******************************/
 
-const adminGetBillDetails = async function (billId) {
+const adminGetTransferDetails = async function (transferId) {
   try {
-    const billDetails = await db.get(
-      `SELECT * FROM bills where id = ?`,
-      billId
+    const transferDetails = await db.get(
+      `SELECT * FROM transfers where id = ?`,
+      transferId
     );
-    return billDetails;
+    return transferDetails;
   } catch (error) {
     console.error(`Error getting last sync number ${error}`);
     throw error;
   }
 };
 
-const adminGetPaymentsForBill = async function (billId) {
+const adminGetPaymentsForTransfer = async function (transferId) {
   try {
     const payments = await db.all(
-      `SELECT * FROM payments WHERE bill_id = ?`,
-      billId
+      `SELECT * FROM payments WHERE transfer_id = ?`,
+      transferId
     );
     return payments;
   } catch (error) {
-    console.error(`Error getting payments for bill ${error}`);
+    console.error(`Error getting payments for transfer ${error}`);
     throw error;
   }
 };
 
-const adminUpdateBillStatus = async function (
-  billId,
-  newBillStatus,
+const adminUpdateTransferStatus = async function (
+  transferId,
+  newTransferStatus,
   settledTotal,
   pendingTotal
 ) {
   try {
     const updateResult = await db.run(
-      `UPDATE bills SET status=?, paid_total_cents=?, pending_total_cents=? WHERE id = ?`,
-      newBillStatus,
+      `UPDATE transfers SET status=?, paid_total_cents=?, pending_total_cents=? WHERE id = ?`,
+      newTransferStatus,
       settledTotal,
       pendingTotal,
-      billId
+      transferId
     );
     return updateResult;
   } catch (error) {
-    console.error(`Error updating bill status ${error}`);
+    console.error(`Error updating transfer status ${error}`);
     throw error;
   }
 };
@@ -660,9 +660,9 @@ module.exports = {
   addItem,
   addBankNameForItem,
   addAccount,
-  createNewBill,
-  getBillsForUser,
-  getBillDetailsForUser,
+  createNewTransfer,
+  getTransfersForUser,
+  getTransferDetailsForUser,
   createPaymentForUser,
   addPaymentAuthorization,
   updatePaymentWithTransferIntent,
@@ -670,11 +670,11 @@ module.exports = {
   updatePaymentWithTransferInfo,
   storeProofOfAuthorization,
   getPaymentByPlaidId,
-  getPaymentsForUserBill,
+  getPaymentsForUserTransfer,
   updatePaymentStatus,
   getLastSyncNum,
   setLastSyncNum,
-  adminGetBillDetails,
-  adminGetPaymentsForBill,
-  adminUpdateBillStatus,
+  adminGetTransferDetails,
+  adminGetPaymentsForTransfer,
+  adminUpdateTransferStatus,
 };

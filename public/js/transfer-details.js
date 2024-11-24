@@ -7,14 +7,12 @@ import {
   getDetailsAboutStatus,
 } from "./utils.js";
 import { initiatePaymentWasClicked } from "./make-payment.js";
-import { startPaymentNoTUIWasClicked, paymentDialogConfirmed } from "./make-payment-no-tui.js";
 
 /**
  * Call the server to see what banks the user is connected to.
  */
 export const getPaymentOptions = async () => {
   const accountSelect = document.querySelector("#selectAccount");
-  const accountSelectNoTUI = document.querySelector("#selectAccountNoTUI");
   const accountData = await callMyServer("/server/banks/accounts/list");
   let innerHTML = "";
   if (accountData == null || accountData.length === 0) {
@@ -29,25 +27,24 @@ export const getPaymentOptions = async () => {
       `<option value='new'>I'll choose another account</option>`;
   }
   accountSelect.innerHTML = innerHTML;
-  accountSelectNoTUI.innerHTML = innerHTML;
 };
 
 
 
 /**
- * Retrieve the list of payments for a bill and update the table.
+ * Retrieve the list of payments for a transfer and update the table.
  */
-export const paymentsRefresh = async (billId) => {
+export const paymentsRefresh = async (transferId) => {
   // Retrieve our list of payments
-  const billsJSON = await callMyServer("/server/payments/list", true, {
-    billId,
+  const transfersJSON = await callMyServer("/server/payments/list", true, {
+    transferId,
   });
   const accountTable = document.querySelector("#reportTable");
-  if (billsJSON == null || billsJSON.length === 0) {
+  if (transfersJSON == null || transfersJSON.length === 0) {
     accountTable.innerHTML = `<tr><td colspan="4">No payments yet.</td></tr>`;
     return;
   } else {
-    accountTable.innerHTML = billsJSON
+    accountTable.innerHTML = transfersJSON
       .map(
         (payment) =>
           `<tr>
@@ -69,41 +66,42 @@ export const paymentsRefresh = async (billId) => {
 };
 
 /**
- * Retrieve the details of the current bill and update the interface
+ * Retrieve the details of the current transfer and update the interface
  */
-export const getBillDetails = async () => {
-  console.log("Getting bill details");
-  // Grab the bill ID from the url argument
+export const getTransferDetails = async () => {
+  console.log("Getting transfer details");
+  // Grab the transfer ID from the url argument
   const urlParams = new URLSearchParams(window.location.search);
-  const billId = urlParams.get("billId");
-  if (billId == null) {
+  const transferId = urlParams.get("transferId");
+  console.log(transferId);
+  if (transferId == null) {
     window.location.href = "/client-transfers.html";
   }
-  // Retrieve our bill details and update our site
-  const billJSON = await callMyServer("/server/bills/get", true, { billId });
-  document.querySelector("#billDescription").textContent = billJSON.description;
-  // Would you normally break this out in a customer's bill? Probably not.
+  // Retrieve our transfer details and update our site
+  const transferJSON = await callMyServer("/server/transfers/get", true, { transferId });
+  document.querySelector("#transferDescription").textContent = transferJSON.description;
+  // Would you normally break this out in a customer's transfer? Probably not.
   document.querySelector("#originalAmount").textContent = currencyAmount(
-    billJSON.original_amount_cents / 100,
+    transferJSON.original_amount_cents / 100,
     "USD"
   );
   document.querySelector("#amountPaid").textContent = currencyAmount(
-    billJSON.paid_total_cents / 100,
+    transferJSON.paid_total_cents / 100,
     "USD"
   );
   document.querySelector("#amountPending").textContent = currencyAmount(
-    billJSON.pending_total_cents / 100,
+    transferJSON.pending_total_cents / 100,
     "USD"
   );
   document.querySelector("#amountRemaining").textContent = currencyAmount(
-    (billJSON.original_amount_cents -
-      billJSON.pending_total_cents -
-      billJSON.paid_total_cents) /
+    (transferJSON.original_amount_cents -
+      transferJSON.pending_total_cents -
+      transferJSON.paid_total_cents) /
     100,
     "USD"
   );
   // Refresh our payments
-  await paymentsRefresh(billId);
+  await paymentsRefresh(transferId);
 };
 
 /**
@@ -111,7 +109,7 @@ export const getBillDetails = async () => {
  */
 const performServerSync = async () => {
   await callMyServer("/server/debug/sync_events", true);
-  await getBillDetails();
+  await getTransferDetails();
 };
 
 /**
@@ -123,7 +121,7 @@ const performServerSync = async () => {
  */
 const fireTestWebhook = async () => {
   await callMyServer("/server/debug/fire_webhook", true);
-  setTimeout(getBillDetails, 1500);
+  setTimeout(getTransferDetails, 1500);
 };
 
 /**
@@ -134,14 +132,14 @@ const signedOutCallBack = () => {
 };
 
 /**
- * If we're signed in, let's update the welcome message and get the bill details.
+ * If we're signed in, let's update the welcome message and get the transfer details.
  */
 const signedInCallBack = (userInfo) => {
   console.log(userInfo);
   document.querySelector(
     "#welcomeMessage"
-  ).textContent = `Hi there, ${userInfo.firstName} ${userInfo.lastName}! Let's pay your bill.`;
-  getBillDetails();
+  ).textContent = `Hi there, ${userInfo.firstName} ${userInfo.lastName}! Let's pay your transfer.`;
+  getTransferDetails();
   getPaymentOptions();
 };
 
@@ -150,11 +148,9 @@ const signedInCallBack = (userInfo) => {
  */
 const selectorsAndFunctions = {
   "#signOut": () => signOut(signedOutCallBack),
-  "#payBill": initiatePaymentWasClicked,
+  "#payTransfer": initiatePaymentWasClicked,
   "#syncServer": performServerSync,
   "#fireWebhook": fireTestWebhook,
-  "#payBillNoTUI": startPaymentNoTUIWasClicked,
-  "#dlogConfirmBtn": paymentDialogConfirmed,
 };
 
 Object.entries(selectorsAndFunctions).forEach(([sel, fun]) => {

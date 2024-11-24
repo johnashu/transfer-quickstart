@@ -361,8 +361,6 @@ Plaid Transfer.
 - `/routes/banks.js` -- List banks and accounts that the user is connected to
 - `/routes/transfers.js` -- List, generate and fetch details about transfers
 - `/routes/debug.js` -- A place to put arbitrary rest calls
-- **`/routes/payments_no_transferUI.js`** -- Authorize a transfer, and create
-  one _without_ using Link's Transfer UI.
 - **`/routes/payments.js`** -- List payments, create a Transfer Intent, and
   create a payment using Link's Transfer UI.
 - **`/routes/token.js`** -- Create a link token, exchange a public token for an

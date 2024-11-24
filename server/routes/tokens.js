@@ -117,7 +117,7 @@ const generateLinkToken = async (userObj) => {
   const tokenResponse = await plaidClient.linkTokenCreate({
     user: { client_user_id: userObj.id },
     products: ["transfer"],
-    client_name: "Bill Transfer App",
+    client_name: "Transfer to Co2Trust",
     language: "en",
     country_codes: ["US"],
   });

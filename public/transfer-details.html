@@ -20,11 +20,11 @@
       <a href="transfer.html" class="btn btn-link mb-2">Back to transfers</a>
       <div class=" w-100 flex-row d-flex justify-content-between gap-4">
         <div class="w-50 mb-4 ">
-          <div class="border border-1 p-1 rounded-2" id="billDetails">
+          <div class="border border-1 p-1 rounded-2" id="transferDetails">
             <table class="table table-striped m-0">
               <tr>
                 <th scope="row" class="">Transfer</th>
-                <td class="text-end" id="billDescription"></td>
+                <td class="text-end" id="transferDescription"></td>
               </tr>
               <tr>
                 <th scope="row">Original Amount</th>
@@ -51,10 +51,6 @@
               <button class="nav-link active" id="tui-tab" data-bs-toggle="tab" data-bs-target="#tui" type="button"
                 role="tab" aria-controls="tui" aria-selected="true">Transfer UI</button>
             </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="no-tui-tab" data-bs-toggle="tab" data-bs-target="#notui" type="button"
-                role="tab" aria-controls="notui" aria-selected="false">Without Transfer UI</button>
-            </li>
           </ul>
           <!-- Interface that uses Transfer UI -->
           <div class="tab-content" id="myTabContent">
@@ -72,24 +68,7 @@
               <div class="w-100 mb-4 d-none" style="height: 350px;" id="plaidEmbedContainer"></div>
 
               <div class="w-100 mb-4">
-                <button type="button" class="btn btn-primary text-white" id="payBill">Transfer to Co2Trust</button>
-              </div>
-            </div>
-            <!-- Interface that doesn't use Transfer UI -->
-            <div class="tab-pane fade" id="notui" role="tabpanel" aria-labelledby="no-tui-tab">
-              <div class="w-100 mb-4">
-                <label for="amountToPayNoTUI" class="form-label
-                          ">Amount to pay</label>
-                <input type="number" class="form-control" id="amountToPayNoTUI" />
-              </div>
-              <div class="w-100 mb-4">
-                <label for="selectAccount" id="banksMsgNoTUI" class="form-label
-                                    ">Select an account</label>
-                <select id="selectAccountNoTUI" class="form-select" aria-label="Select an account"></select>
-              </div>
-              <div class="w-100 mb-4 d-none" style="height: 350px;" id="plaidEmbedContainerNoTUI"></div>
-              <div class="w-100 mb-4">
-                <button type="button" class="btn btn-primary text-white" id="payBillNoTUI">Transfer to Co2Trust</button>
+                <button type="button" class="btn btn-primary text-white" id="payTransfer">Transfer to Co2Trust</button>
               </div>
             </div>
           </div>
@@ -161,7 +140,6 @@
 
   <script type="module" src="js/transfer-details.js"></script>
   <script type="module" src="js/make-payment.js"></script>
-  <script type="module" src="js/make-payment-no-tui.js"></script>
 
 </body>
 

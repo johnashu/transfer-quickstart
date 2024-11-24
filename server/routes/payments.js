@@ -18,7 +18,7 @@ const WEBHOOK_URL =
 router.post("/initiate", async (req, res, next) => {
   try {
     const userId = req.userId;
-    const { billId, accountId, amount } = req.body;
+    const { transferId, accountId, amount } = req.body;
     // Grab our user's legal name
     const userObject = await db.getUserRecord(userId);
     const legalName = `${userObject.first_name} ${userObject.last_name}`;
@@ -35,14 +35,14 @@ router.post("/initiate", async (req, res, next) => {
       legalName,
       userObject.email,
       amountAsString,
-      billId,
+      transferId,
       accountIdOrNull
     );
 
     // Save this attempted payment in the database
     await db.createPaymentForUser(
       userId,
-      billId,
+      transferId,
       transferIntentId,
       accountIdOrNull,
       amountAsCents
@@ -115,13 +115,13 @@ router.post("/transfer_ui_complete", async (req, res, next) => {
 });
 
 /**
- * Lists payments for a specific bill.
+ * Lists payments for a specific transfer.
  */
 router.post("/list", async (req, res, next) => {
   try {
     const userId = req.userId;
-    const billId = req.body.billId;
-    const payments = await db.getPaymentsForUserBill(userId, billId);
+    const transferId = req.body.transferId;
+    const payments = await db.getPaymentsForUserTransfer(userId, transferId);
     res.json(payments);
   } catch (error) {
     next(error);
@@ -136,7 +136,7 @@ async function getTransferIntentId(
   legalName,
   email,
   amountAsString,
-  billId,
+  transferId,
   accountIdOrNull
 ) {
   const intentCreateObject = {
@@ -146,12 +146,12 @@ async function getTransferIntentId(
       email_address: email,
     },
     amount: amountAsString,
-    description: "BillPay",
+    description: "TransferPay",
     ach_class: "ppd", // Refer to the documentation, or talk to your Plaid representative to see which class is right for you.
     iso_currency_code: "USD",
     network: "same-day-ach", // This is the default value, but I like to make it explicit
     metadata: {
-      bill_id: billId,
+      transfer_id: transferId,
     },
   };
   if (accountIdOrNull != null) {
@@ -188,7 +188,7 @@ async function createLinkTokenForTransferUI(
     transfer: {
       intent_id: transferIntentId,
     },
-    client_name: "Pay My Utility Bill",
+    client_name: "Transfer to Co2Trust",
     language: "en",
     country_codes: ["US"],
     webhook: WEBHOOK_URL,

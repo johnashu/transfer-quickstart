@@ -25,7 +25,7 @@ const signedOutCallback = () => {
 };
 
 /**
- * If we're signed in, redirect to the bills page
+ * If we're signed in, redirect to the transfers page
  */
 const signedInCallback = (userInfo) => {
   document.querySelector(

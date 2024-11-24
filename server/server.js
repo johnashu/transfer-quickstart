@@ -24,18 +24,16 @@ const server = app.listen(APP_PORT, function () {
 const usersRouter = require("./routes/users");
 const linkTokenRouter = require("./routes/tokens");
 const banksRouter = require("./routes/banks");
-const billsRouter = require("./routes/bills");
+const transfersRouter = require("./routes/transfers");
 const paymentsRouter = require("./routes/payments");
-const paymentsNoTUIRouter = require("./routes/payments_no_transferUI");
 const debugRouter = require("./routes/debug");
 const { getWebhookServer } = require("./webhookServer");
 
 app.use("/server/users", usersRouter);
 app.use("/server/tokens", linkTokenRouter);
 app.use("/server/banks", banksRouter);
-app.use("/server/bills", billsRouter);
+app.use("/server/transfers", transfersRouter);
 app.use("/server/payments", paymentsRouter);
-app.use("/server/payments/no_transfer_ui", paymentsNoTUIRouter);
 app.use("/server/debug", debugRouter);
 
 /**

@@ -1,6 +1,6 @@
 import { startLink, exchangePublicToken, startEmbeddedLink } from "./link.js";
 import { showSelector, hideSelector, callMyServer } from "./utils.js";
-import { getBillDetails, getPaymentOptions } from "./transfer-details.js";
+import { getTransferDetails, getPaymentOptions } from "./transfer-details.js";
 
 /************************
  * If you're using TransferUI (which we recommend for most developers getting started)
@@ -16,11 +16,11 @@ const shouldIShowEmbeddedLink = () => {
   if (document.querySelector("#selectAccount").value === "new" &&
     document.querySelector("#amountToPay").value > 0) {
     showSelector("#plaidEmbedContainer");
-    hideSelector("#payBill");
+    hideSelector("#payTransfer");
     initiatePayment(true);
   } else {
     hideSelector("#plaidEmbedContainer");
-    showSelector("#payBill");
+    showSelector("#payTransfer");
   }
 }
 
@@ -45,11 +45,11 @@ export const initiatePaymentWasClicked = async (_) => {
  */
 export const initiatePayment = async (useEmbeddedSearch = false) => {
   console.log(`Starting payment, but embedded search is ${useEmbeddedSearch}`)
-  const billId = new URLSearchParams(window.location.search).get("billId");
+  const transferId = new URLSearchParams(window.location.search).get("transferId");
   const accountId = document.querySelector("#selectAccount").value;
   const amount = document.querySelector("#amountToPay").value;
-  console.log(`Paying bill ${billId} from bank ${accountId} for $${amount}`);
-  if (billId == null || amount == null) {
+  console.log(`Paying transfer ${transferId} from bank ${accountId} for $${amount}`);
+  if (transferId == null || amount == null) {
     alert("Something went wrong");
     return;
   }
@@ -61,7 +61,7 @@ export const initiatePayment = async (useEmbeddedSearch = false) => {
     "/server/payments/initiate",
     true,
     {
-      billId,
+      transferId,
       accountId,
       amount,
     }
@@ -83,7 +83,7 @@ export const initiatePayment = async (useEmbeddedSearch = false) => {
       publicToken,
       transferIntentId,
     });
-    await Promise.all[(getBillDetails(), getPaymentOptions())];
+    await Promise.all[(getTransferDetails(), getPaymentOptions())];
   };
   if (useEmbeddedSearch) {
     const targetElement = document.querySelector("#plaidEmbedContainer");

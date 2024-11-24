@@ -69,7 +69,7 @@ const processPaymentEvent = async (event) => {
   console.log(`Found payment ${JSON.stringify(existingPayment)}`);
 
   const paymentId = existingPayment.id;
-  const billId = existingPayment.bill_id;
+  const transferId = existingPayment.transfer_id;
 
   if (!event.event_type in PAYMENT_STATUS) {
     console.error(`Unknown event type ${event.event_type}`);
@@ -98,7 +98,7 @@ const processPaymentEvent = async (event) => {
   await db.updatePaymentStatus(
     paymentId,
     event.event_type,
-    billId,
+    transferId,
     errorMessage
   );
 };
