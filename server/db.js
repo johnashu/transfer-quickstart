@@ -284,8 +284,8 @@ const getBankNamesForUser = async function (userId) {
 
 // Helper function to generate transfer ID
 function generateTransferId() {
-  // You can customize this format as needed
-  return `TR${Date.now().toString().slice(-6)}`;
+  // return `TR${Date.now().toString().slice(-6)}`;
+  return uuidv4();
 }
 
 /***********************************************
@@ -325,8 +325,6 @@ const createNewTransfer = async function (userId, amount, description) {
     throw error;
   }
 };
-
-
 
 const getTransfersForUser = async function (userId) {
   try {

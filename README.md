@@ -365,7 +365,6 @@ Plaid Transfer.
   create a payment using Link's Transfer UI.
 - **`/routes/token.js`** -- Create a link token, exchange a public token for an
   access token, also does all the work around fetching and saving bank names
-- `/routes/user.js` -- Sign in, sign out, create user, etc.
 
 ### Files On the client
 

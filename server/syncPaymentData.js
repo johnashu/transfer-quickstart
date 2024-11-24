@@ -60,6 +60,8 @@ const processPaymentEvent = async (event) => {
   console.log(`\n\nAnalyzing event: ${JSON.stringify(event)}`);
   const existingPayment = await db.getPaymentByPlaidId(event.transfer_id);
 
+  console.log(`existingPayment: ${existingPayment}`);
+
   if (!existingPayment) {
     console.warn(
       `Could not find a payment with ID ${event.transfer_id}. It might belong to another application`

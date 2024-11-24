@@ -26,10 +26,12 @@ router.post("/run", async (req, res, next) => {
  * 
  */
 router.post("/sync_events", async (req, res, next) => {
+  console.log("sync_events");
   try {
     await syncPaymentData();
     res.json({ status: "done" });
   } catch (error) {
+    console.log(error);
     next(error);
   }
 });
