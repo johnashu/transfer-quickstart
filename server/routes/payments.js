@@ -33,6 +33,7 @@ router.post("/initiate", async (req, res, next) => {
     // Call transferIntentCreate to invoke the transfer UI
     const transferIntentId = await getTransferIntentId(
       legalName,
+      userObject.email,
       amountAsString,
       billId,
       accountIdOrNull
@@ -51,6 +52,7 @@ router.post("/initiate", async (req, res, next) => {
     const linkToken = await createLinkTokenForTransferUI(
       userId,
       legalName,
+      userObject.email,
       transferIntentId,
       accountIdOrNull
     );
@@ -132,6 +134,7 @@ router.post("/list", async (req, res, next) => {
  */
 async function getTransferIntentId(
   legalName,
+  email,
   amountAsString,
   billId,
   accountIdOrNull
@@ -140,6 +143,7 @@ async function getTransferIntentId(
     mode: "PAYMENT", // Used for transfer going from the end-user to you
     user: {
       legal_name: legalName,
+      email_address: email,
     },
     amount: amountAsString,
     description: "BillPay",
@@ -170,6 +174,7 @@ async function getTransferIntentId(
 async function createLinkTokenForTransferUI(
   userId,
   legalName,
+  email,
   transferIntentId,
   accountIdOrNull
 ) {
@@ -177,6 +182,7 @@ async function createLinkTokenForTransferUI(
     user: {
       client_user_id: userId,
       legal_name: legalName,
+      email_address: email,
     },
     products: ["transfer"],
     transfer: {

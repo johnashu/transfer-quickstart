@@ -1,39 +1,27 @@
-import { createNewUser, refreshSignInStatus, signIn } from "./signin.js";
-import { callMyServer, hideSelector, showSelector } from "./utils.js";
+import { refreshSignInStatus } from "./signin.js";
+import { callMyServer } from "./utils.js";
+
+// The user ID you want to auto-login with
+const AUTO_LOGIN_USER_ID = "YOUR_USER_ID_HERE"; // Replace this with the actual user ID
 
 /**
- * Let's create a new account! (And then call the signedInCallback when we're done)
+ * Auto-login the specified user
  */
-export const createAccount = async function (signedInCallback) {
-  const newUsername = document.querySelector("#username").value;
-  const newFirstName = document.querySelector("#firstName").value;
-  const newLastName = document.querySelector("#lastName").value;
-  await createNewUser(signedInCallback, newUsername, newFirstName, newLastName);
-};
-
-/**
- * Get a list of all of our users on the server.
- */
-const getExistingUsers = async function () {
-  const usersList = await callMyServer("/server/users/list");
-  if (usersList.length === 0) {
-    hideSelector("#existingUsers");
-  } else {
-    showSelector("#existingUsers");
-    document.querySelector("#existingUsersSelect").innerHTML = usersList.map(
-      (userObj) => `<option value="${userObj.id}">${userObj.username}</option>`
-    );
+const autoLogin = async () => {
+  try {
+    await callMyServer("/server/users/sign_in", true, { userId: "6976e07c-cf5e-4769-9c0c-1cf4b1e6e367" });
+    await refreshSignInStatus(signedInCallback, signedOutCallback);
+  } catch (error) {
+    console.error("Auto-login failed:", error);
+    document.querySelector("#welcomeMessage").textContent = "Auto-login failed. Please check the user ID.";
   }
 };
 
-
 /**
- * If we're signed out, show the welcome message and the sign-in options 
+ * If we're signed out, attempt auto-login
  */
 const signedOutCallback = () => {
-  document.querySelector("#welcomeMessage").textContent =
-    "Hi, there! It's your local utility. Please sign in to view and pay your bills";
-  getExistingUsers();
+  autoLogin();
 };
 
 /**
@@ -43,15 +31,8 @@ const signedInCallback = (userInfo) => {
   document.querySelector(
     "#welcomeMessage"
   ).textContent = `Hi there! So great to see you again! You are signed in as ${userInfo.username}!`;
-  window.location.href = "/bills.html";
+  window.location.href = "/transfer.html";
 };
 
-document.querySelector("#signIn")?.addEventListener("click", () => {
-  signIn(signedInCallback);
-});
-
-document.querySelector("#createAccount")?.addEventListener("click", () => {
-  createAccount(signedInCallback);
-});
-
+// Check initial sign-in status
 await refreshSignInStatus(signedInCallback, signedOutCallback);

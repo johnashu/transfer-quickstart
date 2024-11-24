@@ -8,22 +8,22 @@
   <link rel="stylesheet" href="./css/custom_bootstrap.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  <title>View my Bills</title>
+  <title>View my Transfers</title>
 </head>
 
 <body>
   <div class="container w-75 pt-5">
-    <h3>Bill details</h3>
-    <p>How'd you like to pay your bill using Plaid Transfer?</p>
+    <h3>Transfer details</h3>
+    <p>How'd you like to Transfer to Co2Trust using Plaid Transfer?</p>
     <div class="w-75 border border-3 rounded p-3 mx-auto">
-      <p class="mb-2" id="welcomeMessage">Let's pay your bill</p>
-      <a href="bills.html" class="btn btn-link mb-2">Back to bills</a>
+      <p class="mb-2" id="welcomeMessage">Let's transfer to Co2Trust</p>
+      <a href="transfer.html" class="btn btn-link mb-2">Back to transfers</a>
       <div class=" w-100 flex-row d-flex justify-content-between gap-4">
         <div class="w-50 mb-4 ">
           <div class="border border-1 p-1 rounded-2" id="billDetails">
             <table class="table table-striped m-0">
               <tr>
-                <th scope="row" class="">Bill</th>
+                <th scope="row" class="">Transfer</th>
                 <td class="text-end" id="billDescription"></td>
               </tr>
               <tr>
@@ -72,7 +72,7 @@
               <div class="w-100 mb-4 d-none" style="height: 350px;" id="plaidEmbedContainer"></div>
 
               <div class="w-100 mb-4">
-                <button type="button" class="btn btn-primary text-white" id="payBill">Pay Bill</button>
+                <button type="button" class="btn btn-primary text-white" id="payBill">Transfer to Co2Trust</button>
               </div>
             </div>
             <!-- Interface that doesn't use Transfer UI -->
@@ -89,7 +89,7 @@
               </div>
               <div class="w-100 mb-4 d-none" style="height: 350px;" id="plaidEmbedContainerNoTUI"></div>
               <div class="w-100 mb-4">
-                <button type="button" class="btn btn-primary text-white" id="payBillNoTUI">Pay Bill</button>
+                <button type="button" class="btn btn-primary text-white" id="payBillNoTUI">Transfer to Co2Trust</button>
               </div>
             </div>
           </div>
@@ -132,7 +132,7 @@
                 </tr>
                 <tr>
                   <th scope="row">To</th>
-                  <td class="text-end" id="toAccount">Pay My Utility Bill</td>
+                  <td class="text-end" id="toAccount">Transfer to Co2Trust</td>
                 </tr>
                 <tr>
                   <th scope="row">Date</th>
@@ -142,7 +142,7 @@
                   </td>
                 </tr>
               </table>
-              <p class="small text">By clicking "Confirm", you authorize Pay My Utility Bill to make this transfer and
+              <p class="small text">By clicking "Confirm", you authorize Co2Trust to make this transfer and
                 agree to the <a href="">Terms of Service</a></p>
             </div>
             <div class="modal-footer">
@@ -159,7 +159,7 @@
     crossorigin="anonymous"></script>
   <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
 
-  <script type="module" src="js/bill-details.js"></script>
+  <script type="module" src="js/transfer-details.js"></script>
   <script type="module" src="js/make-payment.js"></script>
   <script type="module" src="js/make-payment-no-tui.js"></script>
 

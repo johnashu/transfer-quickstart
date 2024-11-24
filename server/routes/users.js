@@ -21,8 +21,9 @@ router.post("/create", async (req, res, next) => {
     const username = escape(req.body.username);
     const firstName = escape(req.body.firstName);
     const lastName = escape(req.body.lastName);
+    const email = escape(req.body.email);
     const userId = uuidv4();
-    const result = await db.addUser(userId, username, firstName, lastName);
+    const result = await db.addUser(userId, username, firstName, lastName, email);
     console.log(`User creation result is ${JSON.stringify(result)}`);
     if (result["lastID"] != null) {
       res.cookie("signedInUser", userId, {

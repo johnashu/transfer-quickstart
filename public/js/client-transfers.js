@@ -29,7 +29,7 @@ export const billsRefresh = async () => {
 
   accountTable.innerHTML = billsJSON
     .map((bill) => {
-      const billActionLink = `<a href="bill-details.html?billId=${bill.id}">${bill.status === "unpaid" ? "Pay" : "View"
+      const billActionLink = `<a href="transfer-details.html?billId=${bill.id}">${bill.status === "unpaid" ? "Pay" : "View"
         }</a>`;
       return `<tr><td>${bill.description}</td><td>${prettyDate(
         bill.created_date
@@ -65,11 +65,43 @@ const signedInCallBack = (userInfo) => {
 };
 
 /**
+ * Create a new transfer
+ */
+const createTransfer = async function () {
+  const amount = document.querySelector("#transferAmount").value;
+
+  if (!amount || isNaN(amount) || amount <= 0) {
+    alert("Please enter a valid amount");
+    return;
+  }
+
+  try {
+
+    const result = await callMyServer("/server/bills/create", true, {
+      amount: amount,
+      description: "Transfer to Co2Trust"
+    });
+
+    console.log("Transfer created:", result);
+
+    // Clear the input
+    document.querySelector("#transferAmount").value = "";
+
+    // Refresh the bills list using existing function
+    await billsRefresh();
+  } catch (error) {
+    console.error("Failed to create transfer:", error);
+    alert("Failed to create transfer. Please try again.");
+  }
+};
+
+/**
  * Connects the buttons on the page to the functions above.
  */
 const selectorsAndFunctions = {
   "#signOut": () => signOut(signedOutCallBack),
   "#newBill": createNewBill,
+  "#createTransfer": createTransfer
 };
 
 Object.entries(selectorsAndFunctions).forEach(([sel, fun]) => {
@@ -79,5 +111,7 @@ Object.entries(selectorsAndFunctions).forEach(([sel, fun]) => {
     document.querySelector(sel)?.addEventListener("click", fun);
   }
 });
+
+
 
 await refreshSignInStatus(signedInCallBack, signedOutCallBack);

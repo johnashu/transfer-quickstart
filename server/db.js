@@ -12,7 +12,7 @@ let db;
 const existingDatabase = fs.existsSync(databaseFile);
 
 const createUsersTableSQL =
-  "CREATE TABLE users (id TEXT PRIMARY KEY, username TEXT NOT NULL, first_name TEXT NOT NULL, last_name TEXT NOT NULL)";
+  "CREATE TABLE users (id TEXT PRIMARY KEY, username TEXT NOT NULL, first_name TEXT NOT NULL, last_name TEXT NOT NULL, email TEXT NOT NULL)";
 const createItemsTableSQL =
   "CREATE TABLE items (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, " +
   "access_token TEXT NOT NULL, bank_name TEXT, " +
@@ -66,6 +66,20 @@ dbWrapper
         await db.run(createBillsTableSQL);
         await db.run(createPaymentsTableSQL);
         await db.run(createAppTableSQL);
+
+        // Insert default user
+        await db.run(
+          `INSERT INTO users (id, username, first_name, last_name, email) 
+   VALUES (?, ?, ?, ?, ?)`,
+          [
+            "6976e07c-cf5e-4769-9c0c-1cf4b1e6e367",
+            "john",
+            "John",
+            "Ashurst",
+            "john@co2trust.earth"
+          ]
+        );
+
       } else {
         // Works around the rare instance where a database gets created, but the tables don't
         const tableNames = await db.all(
@@ -217,14 +231,15 @@ const addAccount = async function (accountId, itemId, acctName, balance) {
  * Functions related to Users
  * **********************************************/
 
-const addUser = async function (userId, username, firstName, lastName) {
+const addUser = async function (userId, username, firstName, lastName, email) {
   try {
     const result = await db.run(
-      `INSERT INTO users(id, username, first_name, last_name) VALUES(?, ?, ?, ?)`,
+      `INSERT INTO users(id, username, first_name, last_name, email) VALUES(?, ?, ?, ?, ?)`,
       userId,
       username,
       firstName,
-      lastName
+      lastName,
+      email
     );
     return result;
   } catch (error) {
@@ -267,48 +282,51 @@ const getBankNamesForUser = async function (userId) {
   }
 };
 
+// Helper function to generate transfer ID
+function generateTransferId() {
+  // You can customize this format as needed
+  return `TR${Date.now().toString().slice(-6)}`;
+}
+
 /***********************************************
  * Functions related to Bills
  **********************************************/
-const createNewBill = async function (userId) {
+const createNewBill = async function (userId, amount, description) {
   try {
-    const billId = uuidv4();
-    const someRandomDescriptions = [
-      "Monthly Electric Charge",
-      "This Month's Sparky Bill",
-      "Electricity Usage Invoice",
-      "Watt's Up for This Month!",
-      "Power Bill Snapshot",
-      "Charge It Up - Monthly Bill",
-      "Electric Bill Alert",
-      "Power Play for the Month",
-      "Monthly kWh Tally",
-      "Lightning in a Bill!",
-    ];
+    const billId = generateTransferId();
 
-    const amountDue = Math.floor(Math.random() * 15000 + 1);
-    const description =
-      someRandomDescriptions[
-      Math.floor(Math.random() * someRandomDescriptions.length)
-      ];
+    // Convert amount to cents as per original schema
+    const amountInCents = Math.round(amount * 100);
 
-    const _ = await db.run(
-      `INSERT INTO bills(id, user_id, created_date, description, original_amount_cents, paid_total_cents, pending_total_cents, status) VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
+    const result = await db.run(
+      `INSERT INTO bills(id, user_id, created_date, description, original_amount_cents, paid_total_cents, pending_total_cents, status) 
+       VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
       billId,
       userId,
       new Date().toISOString(),
       description,
-      amountDue,
+      amountInCents,
       0,
       0,
-      "unpaid"
+      'Unpaid'
     );
-    return billId;
+
+    console.log(`Bill created with ID: ${billId}`);
+    console.log(`Result: ${JSON.stringify(result)}`);
+
+    return {
+      id: billId,
+      amount: amount,
+      description,
+      status: 'Unpaid'
+    };
   } catch (error) {
     console.error(`Error creating bill ${error}`);
     throw error;
   }
 };
+
+
 
 const getBillsForUser = async function (userId) {
   try {

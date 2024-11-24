@@ -77,7 +77,7 @@ export const getBillDetails = async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const billId = urlParams.get("billId");
   if (billId == null) {
-    window.location.href = "/client-bills.html";
+    window.location.href = "/client-transfers.html";
   }
   // Retrieve our bill details and update our site
   const billJSON = await callMyServer("/server/bills/get", true, { billId });

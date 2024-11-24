@@ -1,7 +1,7 @@
 
 import { startLink, exchangePublicToken, startEmbeddedLink } from "./link.js";
 import { showSelector, hideSelector, callMyServer, currencyAmount, prettyDate } from "./utils.js";
-import { getBillDetails, getPaymentOptions } from "./bill-details.js";
+import { getBillDetails, getPaymentOptions } from "./transfer-details.js";
 
 
 /************************

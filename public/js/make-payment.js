@@ -1,6 +1,6 @@
 import { startLink, exchangePublicToken, startEmbeddedLink } from "./link.js";
 import { showSelector, hideSelector, callMyServer } from "./utils.js";
-import { getBillDetails, getPaymentOptions } from "./bill-details.js";
+import { getBillDetails, getPaymentOptions } from "./transfer-details.js";
 
 /************************
  * If you're using TransferUI (which we recommend for most developers getting started)

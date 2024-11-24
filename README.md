@@ -1,8 +1,8 @@
-# Transfer Sample App
+# Transfer to Co2Trust Sample App
 
-The Pay My Bills sample app is a demonstration of how a company (in this case, a
+The Transfer to Co2Trust sample app is a demonstration of how a company (in this case, a
 fictional utility company) can use Plaid Transfer to allow their customers to
-utilize pay by bank to pay their electric bills.
+utilize pay by bank to transfer to Co2Trust.
 
 This demo app shows two different ways to use Plaid Transfer -- one method using
 Transfer UI (which handles several intermediate steps and collects appropriate
@@ -130,8 +130,8 @@ you that you can open up http://localhost:8000/ to view your running app!
 
 # Running the application
 
-Pay Your Electric Bill is a fictional website that utilizes Plaid Transfer so
-that customers can use pay-by-bank to pay their electric bill.
+Transfer to Co2Trust is a fictional website that utilizes Plaid Transfer so
+that customers can use pay-by-bank to transfer to Co2Trust.
 
 This sample application simulates two different ways that a user could use Plaid
 Transfer to pay by bank. Obviously, in a real app, you wouldn't use both
@@ -140,10 +140,9 @@ options; this is just for demonstration purposes.
 Create a fictional customer account or sign in with a existing account to start
 the process.
 
-To create a bill, simply click the **Generate a new bill** button. One will be
-randomly generated for you.
+To create a transfer, simply enter an amount and click the **Create Transfer** button.
 
-## 1. Paying your bill with Transfer UI
+## 1. Transferring to Co2Trust with Transfer UI
 
 Transfer UI is a feature built into Link, the UI widget provided by Plaid. It
 takes care of connecting your user to a checking or savings account if
@@ -153,11 +152,11 @@ you stay compliant with Nacha guidelines.
 Using Transfer UI doesn't require installing any additional libraries on the
 client -- it's already part of Link.
 
-To pay your bill using Tranfer UI, click the "Pay" link next to any individual
-bill. This will take you to a Bill Details page where you can see details about
-your bill, including the original amount, and how much is still due.
+To transfer to Co2Trust using Transfer UI, click the "Transfer" link next to any individual
+transfer. This will take you to a Transfer Details page where you can see details about
+your transfer, including the original amount.
 
-From the Bill Details page, enter an amount to pay and click the **Pay Bill**
+From the Transfer Details page, enter an amount to transfer and click the **Transfer to Co2Trust**
 button.
 
 If this is your first time using this application and you have not connected
@@ -172,9 +171,9 @@ Once you're done connecting to a bank, Plaid will then ask you to authorize a
 payment from the account you've just connected to. Click Accept, and your
 payment is submitted.
 
-To make subsequent payments with the same account, select the account you've
-previously connected, enter an amount, and click "Pay". Plaid will once again
-display the authorization form, and then submit your payment.
+To make subsequent transfers with the same account, select the account you've
+previously connected, enter an amount, and click "Transfer". Plaid will once again
+display the authorization form, and then submit your transfer.
 
 ### How it works
 
@@ -185,19 +184,19 @@ of how Plaid Transfer works making use of Link's Transfer UI.
 
 If your customer has made a payment in the past and has, therefore, already
 connected their bank to your application through Plaid, this is the overall
-process for making a payment:
+process for making a transfer:
 
-1. When a user chooses to make a payment, the client calls the
+1. When a user chooses to make a transfer, the client calls the
    `/server/payments/initiate` endpoint on the locally-running server, passing
    along the account ID to use.
 
 2. On the server, the application creates a Transfer Intent by making a call to
    Plaid's `/transfer/intent/create` endpoint. It includes data about the
-   payment such as the user's legal name, the account they're using, the amount
-   of the payment, and so on. It receives back an `intent_id`.
+      transfer such as the user's legal name, the account they're using, the amount
+   of the transfer, and so on. It receives back an `intent_id`.
 
-3. The server saves this payment information in its local database, storing the
-   `intent_id` alongside the rest of the payment information.
+3. The server saves this transfer information in its local database, storing the
+   `intent_id` alongside the rest of the transfer information.
 
 4. The server then creates a link token through Plaid's `/link/token/create`
    call, sending the `intent_id` that it received in the previous step, along
@@ -209,12 +208,12 @@ process for making a payment:
    Plaid JavaScript SDK to open Link.
 
 6. Inside of Link, the user is presented with a Nacha-compliant authorization
-   form, so they can authorize the payment. Plaid stores this proof of
+      form, so they can authorize the transfer. Plaid stores this proof of
    authorization on its servers.
 
 7. Once the user completes the Link process successfully, the payment is in
    Plaid's system and is ready to be sent off to the ACH network. We just need
-   to make sure our application knows about the transfer that was created.
+      to make sure our application knows about the transfer that was created.
 
 8. In Link's `onSuccess()` callback, the client sends down the original intent
    ID to the server's `/payments/transfer_ui_complete` endpoint. The server then
@@ -229,7 +228,7 @@ process for making a payment:
    payment in Plaid's system from now on.
 
 9. All of this information is saved in the database and is used to populate the
-   "Payments for this bill" table.
+   "Transfers to Co2Trust" table.
 
 #### Need to connect an account?
 
@@ -255,106 +254,8 @@ before, but with these differences:
    with the transfer, our server also makes a separate call to `/transfer/get`,
    to find out value of the `account_id` that was used in the transfer.
 
-## 1a. Paying your bill without Transfer UI
 
-If you're interested in seeing the process for implementing pay-by-bank without
-using Link's Transfer UI feature, you can select the "Without Transfer UI" tab
-and follow the process there.
-
-The UI should look similar to the previous one -- the user can select an
-existing bank or ask to connect to a new one, then they can specify an amount
-and pay their bill. The biggest change you'll notice is that the confirmation
-dialog is supplied by the application, not Plaid. Behind the scenes, the
-endpoints used are different, and you as an application developer will need to
-perform additional work to store proof of authorization.
-
-### How it works
-
-Again, you should view the code for the complete details, but here's the brief
-summary of how Transfer without using Link's Transfer UI works
-
-#### Already connected an account?
-
-If your customer has made a payment in the past and has, therefore, already
-connected their bank to your application through Plaid, this is the overall
-process for making a payment:
-
-1. Our client displays a dialog to the user requesting their proof of
-   authorization. This is just a placeholder dialog and should not be considered
-   a definitive example. We recommend reading
-   [Nacha's guidelines](https://www.nacha.org/system/files/2022-11/WEB_Proof_of_Authorization_Industry_Practices.pdf)
-   for payments or working with your Plaid representative to make sure you
-   display the proper authorization language.
-
-2. After that, the client makes a separate call to the
-   `/server/payments/no_transfer_ui/store_proof_of_authorization_necessary_for_nacha_compliance`
-   endpoint. This is a dummy endpoint that demonstrates some of the data you
-   would want to store for proof of authorization. You should store this data
-   for at least two years, and may need to provide Plaid with this information
-   if there is a customer dispute. Again, see
-   [Nacha's guidelines](https://www.nacha.org/system/files/2022-11/WEB_Proof_of_Authorization_Industry_Practices.pdf)
-   for additional information.
-
-3. The client then makes a call to
-   `/server/payments/no_transfer_ui/authorize_and_create` with information about
-   the transfer.
-
-4. The server first creates an entry in its database's `payments` table for this
-   payment. We do this to create a unique ID that we can use as an idempotency
-   key in the next step.
-
-5. The server calls Plaid's `/transfer/authorization/create` endpoint to
-   authorize this payment. This call checks, among other things, that the
-   routing and account numbers are valid, and that the user has enough money in
-   their account to avoid running into NSF (insufficient fund) errors.
-
-   This endpoint will return a `decision` value of `declined` or `approved`,
-   although Plaid will default to approving transfers if it doesn't have enough
-   data otherwise. So if Plaid can't connect to a bank to see the user's
-   available balance, it will be marked as `approved` and a note will be make in
-   the `decision_rationale` field. You should check this field and determine the
-   right course for your application.
-
-6. Finally, the server makes a call to `/transfer/create`, passing along the
-   `authorization_id` that was returned in the previous step, along with some
-   additional information about that payment.
-
-7. At this point, the payment is in Plaid's system and is ready to be sent off
-   to the ACH network. All of this information is saved in the database and is
-   used to populate the "Payments for this bill" table.
-
-#### Need to connect an account?
-
-If your user has not yet connected their account with your application using
-Plaid (or they wish to connect a new account), the process works similar to
-before, but with these differences:
-
-1. When the user specifies that they wish to connect to a new account to make
-   the payment, the client calls the `/server/token/create` endpoint on the
-   locally-running server.
-
-2. Our server generates a `link_token` by calling Plaid's `/link/token/create`
-   endpoint, specifying `["transfer"]` as the list of products that are
-   required.
-
-3. The server sends this `link_token` up to the client, which then uses the
-   Plaid JavaScript SDK to open Link.
-
-4. If the user successfully completes the Link process, the client receives a
-   `public_token`, which it then sends down to our server (via the
-   `/server/tokens/exchange_public_token`), to exchange for a more permanent
-   `access_token`.
-
-5. This endpoint also accepts a `returnAccountId: true` argument, which it uses
-   to send back an `account_d` belonging to the recently connected bank. This is
-   how our client knows which bank account to use in the upcoming transfer. In a
-   real application, you should be using a Link flow that requires the user to
-   select only a single account so there's no risk of ambiguation here.
-
-6. We then proceed with the "Already connected to an account" flow, using the
-   `account_id` that we have retrieved in the previous step.
-
-## 2. Updating payment statuses
+## 2. Updating transfer statuses
 
 When you submit a payment, it will be marked as "Pending" in Plaid's system,
 meaning it's bundled up on Plaid's servers and ready to submit to the ACH
@@ -387,8 +288,8 @@ sequential list of transfer events since the `after_id` event.
 
 These events contain all of the information needed to stay on top of payment
 statuses. Most commonly, this will reflect the fact that a payment's status has
-changed. When a payment's status has changed, we record that information our
-database and update the total amount due associated with a bill. Payments that
+changed. When a transfer's status has changed, we record that information our
+database and update the total amount due associated with a transfer. Transfers that
 are marked as `settled`, for instance, can generally be considered to be
 completed and can be deducted from the total "amount due. However, the user can
 still dispute unauthorized charges for up to 60 days after the payment. We also
@@ -446,7 +347,7 @@ Plaid Transfer.
 
 - `db.js` -- All the work for interacting with the database is performed here
 - `plaid.js` -- Initializes the Plaid client library
-- **`recalculateBills.js`** -- Calculates the status of a bill based on the
+- **`recalculateTransfers.js`** -- Calculates the status of a transfer based on the
   status of all the associated payments in our database. Your application's
   logic may differ.
 - `server.js` -- Starts up the server and reads in all the routes listed below
@@ -458,7 +359,7 @@ Plaid Transfer.
 - `webhookServer.js` -- A second server running on port 8001 to respond to
   webhooks
 - `/routes/banks.js` -- List banks and accounts that the user is connected to
-- `/routes/bills.js` -- List, generate and fetch details about bills
+- `/routes/transfers.js` -- List, generate and fetch details about transfers
 - `/routes/debug.js` -- A place to put arbitrary rest calls
 - **`/routes/payments_no_transferUI.js`** -- Authorize a transfer, and create
   one _without_ using Link's Transfer UI.
@@ -470,10 +371,10 @@ Plaid Transfer.
 
 ### Files On the client
 
-- **`js/bill-details.js`** -- Does much more than get bill details! This
-  performs the client logic necessary to pay bills, both with and without
+- **`js/transfer-details.js`** -- Does much more than get transfer details! This
+  performs the client logic necessary to transfer to Co2Trust, both with and without
   Transfer UI. We should probably rename or split up this file.
-- `js/client-bills.js` -- Fetches and displays info about the user's bills
+- `js/client-transfers.js` -- Fetches and displays info about the user's transfers
 - `js/home.hs` -- Handle creating in and signing in users
 - `js/link.js` -- Initialize and run Link, send the public token down to the
   server

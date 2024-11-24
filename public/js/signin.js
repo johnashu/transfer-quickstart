@@ -14,12 +14,14 @@ export const createNewUser = async function (
   signedInCallback,
   newUsername,
   newFirstName,
-  newLastName
+  newLastName,
+  newEmail
 ) {
   await callMyServer("/server/users/create", true, {
     username: newUsername,
     firstName: newFirstName,
     lastName: newLastName,
+    email: newEmail,
   });
   await refreshSignInStatus(signedInCallback, noop);
 };

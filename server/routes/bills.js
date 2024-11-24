@@ -6,22 +6,41 @@ const authenticate = require("../middleware/authenticate");
 const router = express.Router();
 router.use(authenticate);
 
+
 /**
- * Generate a new utility bill for our user.
+ * Create a new transfer record
  */
 router.post("/create", async (req, res, next) => {
   try {
     const userId = req.userId;
-    const result = await db.createNewBill(userId);
-    console.log(`Bill creation result is ${JSON.stringify(result)}`);
-    res.json(result);
+    const { amount } = req.body;
+
+    // Validate amount
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ error: 'Invalid amount' });
+    }
+
+    // Generate a transfer ID
+    const transferId = `TR${Date.now().toString().slice(-6)}`;
+    const description = `Transfer to Co2Trust - ${transferId}`;
+
+    const result = await db.createNewBill(userId, amount, description);
+
+    res.json({
+      id: result.lastID,
+      transferId,
+      amount,
+      description,
+      status: 'Unpaid',
+      created_at: new Date().toISOString()
+    });
   } catch (error) {
     next(error);
   }
 });
 
 /**
- * List all the bills for the current signed-in user.
+ * List all the transfers for the current signed-in user.
  */
 router.get("/list", async (req, res, next) => {
   try {
@@ -46,5 +65,6 @@ router.post("/get", async (req, res, next) => {
     next(error);
   }
 });
+
 
 module.exports = router;
