@@ -98,7 +98,7 @@ router.post("/transfer_ui_complete", async (req, res, next) => {
         "No account ID from the transfer intent, which means the user connected to a new one. Let's fetch that detail from the transfer"
       );
       const transferResponse = await plaidClient.transferGet({
-        plaid_transfer_id: intentData.transfer_id,
+        transfer_id: intentData.transfer_id,
       });
       console.dir(transferResponse.data, { depth: null });
       await db.updatePaymentWithAccountId(

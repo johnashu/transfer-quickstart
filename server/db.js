@@ -115,6 +115,13 @@ const debugExposeDb = function () {
   return db;
 };
 
+/**
+ * Clear the events from the database
+ */
+const clearEvents = async () => {
+  await db.run("DELETE FROM appdata");
+};
+
 /***********************************************
  * Functions related to fetching or adding items
  * and accounts for a user
@@ -647,6 +654,7 @@ const adminUpdateTransferStatus = async function (
 
 module.exports = {
   debugExposeDb,
+  clearEvents,
   getAccessTokenForUserAndAccount,
   getAccessTokenForUserAndItem,
   getItemsAndAccountsForUser,

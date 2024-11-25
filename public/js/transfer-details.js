@@ -125,6 +125,14 @@ const fireTestWebhook = async () => {
 };
 
 /**
+ * Clear the events from the database
+ */
+const clearEvents = async () => {
+  await callMyServer("/server/debug/clear_events", true);
+  setTimeout(getTransferDetails, 1500);
+};
+
+/**
  * If we're signed out, we shouldn't be here. Go back to the home page.
  */
 const signedOutCallBack = () => {
@@ -147,10 +155,10 @@ const signedInCallBack = (userInfo) => {
  * Connects the buttons on the page to the functions above.
  */
 const selectorsAndFunctions = {
-  "#signOut": () => signOut(signedOutCallBack),
   "#payTransfer": initiatePaymentWasClicked,
   "#syncServer": performServerSync,
   "#fireWebhook": fireTestWebhook,
+  "#clearEvents": clearEvents,
 };
 
 Object.entries(selectorsAndFunctions).forEach(([sel, fun]) => {

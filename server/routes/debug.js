@@ -54,4 +54,16 @@ router.post("/fire_webhook", async (req, res, next) => {
   }
 });
 
+/**
+ * Clear the events from the database
+ */
+router.post("/clear_events", async (req, res, next) => {
+  try {
+    await db.clearEvents();
+    res.json({ status: "done" });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;

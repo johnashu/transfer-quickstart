@@ -11,6 +11,7 @@ const PAYMENT_STATUS = {
   FAILED: "failed",
   CANCELLED: "cancelled",
   RETURNED: "returned",
+  FUNDS_AVAILABLE: "funds_available",
 };
 
 const TRANSFER_STATUS = {

@@ -11,10 +11,17 @@ async function recalculateTransfer(transferId) {
   const transferDetails = await db.adminGetTransferDetails(transferId);
   const payments = await db.adminGetPaymentsForTransfer(transferId);
 
+  console.log(`payments: ${JSON.stringify(payments[0])}`);
   // 2. For any payment that's marked "settled", let's add it to our settled total
   const settledTotal = payments
-    .filter((payment) => payment.status == PAYMENT_STATUS.SETTLED)
+    .filter(
+      (payment) =>
+        payment.status == PAYMENT_STATUS.SETTLED ||
+        payment.status == PAYMENT_STATUS.FUNDS_AVAILABLE
+    )
     .reduce((prev, payment) => prev + payment.amount_cents, 0);
+
+  console.log(`settledTotal: ${settledTotal}`);
 
   // 3. For any payment that's marked "pending" or "posted", let's add it to our pending amount
 
